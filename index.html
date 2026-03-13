@@ -1345,7 +1345,7 @@ function openChartModal(assetId) {
   // TradingView Widget
   const tv = document.getElementById('chartModalTV');
   tv.innerHTML = `<iframe
-    src="https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${sym}&interval=D&theme=dark&style=1&locale=en&toolbar_bg=%230d1220&enable_publishing=false&hide_side_toolbar=0&allow_symbol_change=0&save_image=false&hideideas=1&hide_top_toolbar=0"
+    src="https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${sym}&interval=D&theme=dark&style=1&locale=en&toolbar_bg=%230d1220&enable_publishing=false&hide_side_toolbar=0&allow_symbol_change=0&save_image=false&hideideas=1&hide_top_toolbar=0&up_color=%23ffffff&down_color=%23ffffff&border_up_color=%23ffffff&border_down_color=%23ffffff&wick_up_color=%23ffffff&wick_down_color=%23ffffff"
     style="width:100%;height:100%;border:none;"></iframe>`;
 
   // Signal timeline from localStorage
