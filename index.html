@@ -109,11 +109,24 @@
 
   /* DESKTOP LAYOUT */
   .desktop-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 96px);
+  }
+  .total-value-bar {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border2);
+    background: var(--bg2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 3px solid var(--cyan);
+    box-shadow: 0 0 24px rgba(0,204,255,.06);
+  }
+  .columns-wrapper {
     display: grid;
     grid-template-columns: 420px 1fr;
-    grid-template-rows: auto;
-    gap: 0;
-    min-height: calc(100vh - 80px);
+    flex: 1;
   }
 
   /* LEFT COLUMN */
@@ -124,9 +137,9 @@
     flex-direction: column;
     gap: 10px;
     overflow-y: auto;
-    height: calc(100vh - 96px);
+    height: calc(100vh - 152px);
     position: sticky;
-    top: 96px;
+    top: 152px;
   }
 
   /* RIGHT COLUMN */
@@ -395,6 +408,15 @@
 <!-- DESKTOP LAYOUT -->
 <div class="desktop-wrapper">
 
+  <!-- TOTAL VALUE — full width -->
+  <div class="total-value-bar">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver)">Total Portfolio Value</span>
+    <span style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--cyan);letter-spacing:.05em" id="portfolioTotalDesktop">— USD</span>
+  </div>
+
+  <!-- TWO COLUMNS -->
+  <div class="columns-wrapper">
+
   <!-- ═══ LEFT COLUMN ═══ -->
   <div class="col-left">
 
@@ -510,26 +532,20 @@
   <!-- ═══ RIGHT COLUMN ═══ -->
   <div class="col-right">
 
-    <!-- Total Portfolio Value — full width banner -->
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:10px 20px;border-left:3px solid var(--cyan);display:flex;align-items:center;justify-content:space-between;box-shadow:0 0 24px rgba(0,204,255,.06)">
-      <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver)">Total Portfolio Value</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--cyan);letter-spacing:.05em" id="portfolioTotalDesktop">— USD</span>
-    </div>
+    <!-- GAUGES ROW — hidden, used by JS -->
+    <div style="display:none" id="gaugesRow"></div>
 
-    <!-- GAUGES ROW -->
-    <div>
-      <div class="section-title">Signal Gauges</div>
-      <div id="gaugesRow" style="display:flex;gap:4px;align-items:flex-end;justify-content:space-between"></div>
-    </div>
-
-    <!-- Signals & Performance — 2x2 grid + LTPI full top, GOLD full bottom -->
+    <!-- Signals & Performance — LTPI+GOLD / BTC+ETH+SOL -->
     <div>
       <div class="section-title">Signals & Performance</div>
-      <!-- LTPI full width -->
-      <div id="cardsTop" style="margin-bottom:10px"></div>
-      <!-- BTC ETH SOL GOLD in 2x2 -->
-      <div class="cards-four" id="cardsMid"></div>
-      <div style="display:none" id="cardsBot"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <!-- LTPI -->
+        <div id="cardsTop"></div>
+        <!-- GOLD -->
+        <div id="cardsBot"></div>
+      </div>
+      <!-- BTC ETH SOL in 3 cols -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" id="cardsMid"></div>
     </div>
 
     <!-- Charts side by side -->
@@ -561,6 +577,7 @@
 
   </div><!-- end col-right -->
 
+  </div><!-- end columns-wrapper -->
 </div><!-- end desktop-wrapper -->
 
 <div class="footer">
@@ -1023,8 +1040,8 @@ function makeCard(s) {
 
 function renderCards() {
   document.getElementById('cardsTop').innerHTML = makeCard(SCRIPTS.find(s => s.id === 'ltpi'));
-  document.getElementById('cardsMid').innerHTML = ['btc','eth','sol','gold'].map(id => makeCard(SCRIPTS.find(s => s.id === id))).join('');
-  document.getElementById('cardsBot').innerHTML = '';
+  document.getElementById('cardsBot').innerHTML = makeCard(SCRIPTS.find(s => s.id === 'gold'));
+  document.getElementById('cardsMid').innerHTML = ['btc','eth','sol'].map(id => makeCard(SCRIPTS.find(s => s.id === id))).join('');
 }
 
 function renderFlips() {
