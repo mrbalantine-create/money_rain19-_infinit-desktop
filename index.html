@@ -234,7 +234,9 @@
   .sig-short   { background:rgba(255,51,85,.1); color:var(--red); border:1px solid rgba(255,51,85,.4); }
   .sig-neutral { background:rgba(122,138,176,.08); color:var(--silver); border:1px solid var(--border); }
 
-  .card-body  { padding:10px 12px; }
+  .card-body  { padding:10px 12px; display:flex; flex-direction:column; flex:1; }
+  .card-body .sub-signals { flex:1; }
+  .script-card { display:flex; flex-direction:column; }
   .sub-signals { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
   .sub-row     { display:flex; align-items:center; gap:4px; font-size:.68rem; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.09); }
   .sub-row:last-child { border-bottom: none; padding-bottom:0; }
@@ -424,8 +426,10 @@
 
 
   .notif-btn { background:transparent; border:1px solid var(--border2); color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:.65rem; padding:3px 10px; border-radius:3px; cursor:pointer; letter-spacing:.05em; }
-  .notif-btn.active { color:var(--lime); border-color:var(--lime); }
+  .notif-btn.active { color:var(--lime); border-color:var(--lime); box-shadow:0 0 8px rgba(0,255,102,.25); }
   .notif-btn.denied { color:var(--red);  border-color:var(--red); }
+  .theme-btn.light-active { color:var(--gold); border-color:var(--gold); box-shadow:0 0 8px rgba(255,204,0,.25); }
+  .theme-btn.dark-active  { color:var(--cyan); border-color:var(--cyan); box-shadow:0 0 8px rgba(0,204,255,.25); }
 
 
   /* ── LIGHT MODE ─────────────────────────────────────────── */
@@ -492,10 +496,10 @@ function applyTheme(theme) {
   const btn = document.getElementById('themeBtn');
   if (theme === 'light') {
     document.body.classList.add('light-mode');
-    if (btn) btn.textContent = '☀ LIGHT';
+    if (btn) { btn.textContent = '☀ LIGHT'; btn.classList.add('light-active'); btn.classList.remove('dark-active'); }
   } else {
     document.body.classList.remove('light-mode');
-    if (btn) btn.textContent = '☾ DARK';
+    if (btn) { btn.textContent = '☾ DARK'; btn.classList.add('dark-active'); btn.classList.remove('light-active'); }
   }
   localStorage.setItem(THEME_KEY, theme);
 }
@@ -1204,8 +1208,8 @@ function makeCard(s) {
     </div>
     <div class="card-body">
       <div style="padding:8px 0 10px;display:flex;justify-content:center;align-items:center">${makeGaugeSVGInline(sig, s.color)}</div>
-      <div class="sub-signals">${subRows}${conditionHint}</div>
-      <div class="perf-grid">
+      <div class="sub-signals" style="flex:1">${subRows}${conditionHint}</div>
+      <div class="perf-grid" style="margin-top:auto">
         <div class="perf-item"><span class="perf-val" style="color:${netColor}">${perf.net}</span><span class="perf-lbl">Net Profit</span></div>
         <div class="perf-item"><span class="perf-val" style="color:var(--txt)">${perf.trades}</span><span class="perf-lbl">Trades</span></div>
         <div class="perf-item"><span class="perf-val" style="color:var(--cyan)">${perf.wr}</span><span class="perf-lbl">Win Rate</span></div>
