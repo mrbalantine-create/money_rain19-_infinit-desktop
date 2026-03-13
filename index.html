@@ -119,10 +119,10 @@
   /* LEFT COLUMN */
   .col-left {
     border-right: 1px solid var(--border);
-    padding: 16px;
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
     overflow-y: auto;
     height: calc(100vh - 80px);
     position: sticky;
@@ -210,13 +210,13 @@
   }
   .script-card:hover { border-color:var(--cyan); box-shadow:0 0 12px rgba(0,204,255,.07); }
   .card-header {
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:center; gap:10px;
     padding:8px 12px; border-bottom:1px solid var(--border);
   }
-  .card-asset { display:flex; align-items:center; gap:8px; }
+  .card-asset { display:flex; align-items:center; gap:6px; }
   .asset-dot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .card-name  { font-size:.82rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-  .card-signal { font-family:'Share Tech Mono',monospace; font-size:.62rem; font-weight:700; padding:3px 8px; border-radius:3px; letter-spacing:.08em; }
+  .card-name  { font-size:.82rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-right:2px; }
+  .card-signal { font-family:'Share Tech Mono',monospace; font-size:.72rem; font-weight:700; padding:4px 14px; border-radius:3px; letter-spacing:.1em; }
   .sig-long    { background:rgba(0,255,102,.1); color:var(--lime); border:1px solid rgba(0,255,102,.4); }
   .sig-short   { background:rgba(255,51,85,.1); color:var(--red); border:1px solid rgba(255,51,85,.4); }
   .sig-neutral { background:rgba(122,138,176,.08); color:var(--silver); border:1px solid var(--border); }
@@ -248,7 +248,7 @@
     font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--silver);
     letter-spacing:.1em; text-transform:uppercase;
   }
-  .flip-entries { max-height:130px; overflow-y:auto; }
+  .flip-entries { max-height:260px; overflow-y:auto; }
   .flip-entry {
     display:grid; grid-template-columns:55px 70px 1fr 110px;
     align-items:center; padding:5px 12px; border-bottom:1px solid var(--border);
@@ -792,11 +792,11 @@ function makeCard(s) {
   const netColor = (perf.net||'').startsWith('+') ? 'var(--lime)' : perf.net === '—' ? 'var(--silver)' : 'var(--red)';
   return `<div class="script-card" id="card-${s.id}" style="border-top:2px solid ${s.color};box-shadow:0 0 20px ${s.color}18,inset 0 1px 0 ${s.color}22">
     <div class="card-header">
-      <div class="card-asset">
+      <div class="card-asset" style="flex:1">
         <div class="asset-dot" style="background:${s.color};box-shadow:0 0 8px ${s.color}40"></div>
-        <div><div class="card-name" style="color:${s.color}">${s.name}</div></div>
+        <div class="card-name" style="color:${s.color}">${s.name}</div>
+        <div class="card-signal ${sigClass(sig)}" style="margin-left:8px">${sigText(sig)}</div>
       </div>
-      <div class="card-signal ${sigClass(sig)}">${sigText(sig)}</div>
     </div>
     <div class="card-body">
       <div class="sub-signals">${subRows}${conditionHint}</div>
