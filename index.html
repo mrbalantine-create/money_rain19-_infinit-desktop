@@ -424,6 +424,40 @@
   .notif-btn.active { color:var(--lime); border-color:var(--lime); }
   .notif-btn.denied { color:var(--red);  border-color:var(--red); }
 
+
+  /* ── LIGHT MODE ─────────────────────────────────────────── */
+  body.light-mode {
+    --bg:     #f0f2f5;
+    --bg2:    #ffffff;
+    --bg3:    #e8eaf0;
+    --border: #d0d4e0;
+    --border2:#b0b8cc;
+    --txt:    #1a2040;
+    --silver: #5a6480;
+    --dim:    #9aa0b8;
+    --lime:   #00aa44;
+    --red:    #dd1133;
+    --orange: #cc6600;
+    --blue:   #0077cc;
+    --purple: #8833cc;
+    --gold:   #aa8800;
+    --cyan:   #0099bb;
+    --teal:   #00997a;
+  }
+  body.light-mode::before { display: none; }
+  .theme-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .6rem;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: .08em;
+  }
+  .theme-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
 </style>
 </head>
 <body>
@@ -500,6 +534,7 @@
     </div>
     <span id="clock">--:--:--</span>
     <span id="lastUpdate" style="color:var(--dim)">—</span>
+    <button id="themeBtn" onclick="toggleTheme()" class="theme-btn">☾ DARK</button>
     <button id="notifBtn" onclick="toggleNotifications()" class="notif-btn">🔔 ALERTS</button>
     <button id="privacyBtn" onclick="togglePrivacy()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--silver);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:.65rem;border-radius:3px;cursor:pointer;letter-spacing:.05em">👁 SHOW</button>
   </div>
