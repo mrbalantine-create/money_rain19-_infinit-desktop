@@ -1318,39 +1318,38 @@ function renderMomentum() {
 
 
 function makeGaugeSVGInline(sig_val, color) {
-    // sig_val: -1 = SHORT (left), 0 = WAIT (up), 1 = LONG (right)
-    const v = (sig_val === 1 || sig_val === -1 || sig_val === 0) ? sig_val : 0;
-    const angleDeg = v * 110; // -110 left, 0 up, +110 right
-    const rad = (angleDeg - 90) * Math.PI / 180;
-    const cx = 60, cy = 58;
-    const needleLen = 36;
-    const nx = cx + needleLen * Math.cos(rad);
-    const ny = cy + needleLen * Math.sin(rad);
-    const bw = 4;
-    const b1x = cx + bw * Math.cos(rad + Math.PI/2);
-    const b1y = cy + bw * Math.sin(rad + Math.PI/2);
-    const b2x = cx + bw * Math.cos(rad - Math.PI/2);
-    const b2y = cy + bw * Math.sin(rad - Math.PI/2);
-    const ticks = [-110,-55,0,55,110].map(a => {
-      const ar = (a - 90) * Math.PI / 180;
-      return `<line x1="${(cx + 40*Math.cos(ar)).toFixed(1)}" y1="${(cy + 40*Math.sin(ar)).toFixed(1)}" x2="${(cx + 47*Math.cos(ar)).toFixed(1)}" y2="${(cy + 47*Math.sin(ar)).toFixed(1)}" stroke="#3a4a70" stroke-width="1.5"/>`;
-    }).join('');
-    // Arc helper
-    const arcPt = (angleDeg) => {
-      const a = (angleDeg - 90) * Math.PI / 180;
-      return `${(cx + 46*Math.cos(a)).toFixed(1)} ${(cy + 46*Math.sin(a)).toFixed(1)}`;
-    };
-    return `<svg viewBox="0 0 120 78" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:180px;display:block;margin:0 auto">
-      <circle cx="${cx}" cy="${cy}" r="52" fill="#0d1220" stroke="#1a2540" stroke-width="1.5"/>
-      <path d="M ${arcPt(-130)} A 46 46 0 0 1 ${arcPt(-10)}" fill="none" stroke="#ff3355" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
-      <path d="M ${arcPt(10)} A 46 46 0 0 1 ${arcPt(130)}" fill="none" stroke="#00cc55" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
-      ${ticks}
-      <text x="${(cx + 34*Math.cos((-110-90)*Math.PI/180)).toFixed(1)}" y="${(cy + 34*Math.sin((-110-90)*Math.PI/180) + 3).toFixed(1)}" fill="#ff3355" font-size="7" text-anchor="middle" font-family="monospace">S</text>
-      <text x="${(cx + 34*Math.cos((110-90)*Math.PI/180)).toFixed(1)}" y="${(cy + 34*Math.sin((110-90)*Math.PI/180) + 3).toFixed(1)}" fill="#00cc55" font-size="7" text-anchor="middle" font-family="monospace">L</text>
-      <polygon points="${b1x.toFixed(1)},${b1y.toFixed(1)} ${nx.toFixed(1)},${ny.toFixed(1)} ${b2x.toFixed(1)},${b2y.toFixed(1)}" fill="#ff8800" stroke="#ffaa00" stroke-width="0.5"/>
-      <circle cx="${cx}" cy="${cy}" r="5.5" fill="#0a1520" stroke="${color}" stroke-width="2"/>
-    </svg>`;
-  }
+  const v = (sig_val === 1 || sig_val === -1 || sig_val === 0) ? sig_val : 0;
+  const cx = 60, cy = 58;
+  const ang = v * 110, rad = (ang - 90) * Math.PI / 180;
+  const activeColor = v === 1 ? '#00cc55' : v === -1 ? '#ff3355' : '#7a8ab0';
+  const sigLabel = v === 1 ? 'LONG' : v === -1 ? 'SHORT' : 'WAIT';
+  const seg = (from, to, col, active) => {
+    const a1 = (from-90)*Math.PI/180, a2 = (to-90)*Math.PI/180;
+    const x1 = cx+44*Math.cos(a1), y1 = cy+44*Math.sin(a1);
+    const x2 = cx+44*Math.cos(a2), y2 = cy+44*Math.sin(a2);
+    const lf = Math.abs(to-from) > 180 ? 1 : 0;
+    return `<path d="M ${cx} ${cy} L ${x1.toFixed(1)} ${y1.toFixed(1)} A 44 44 0 ${lf} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${col}" opacity="${active ? 0.75 : 0.1}"/>`;
+  };
+  const nx = cx+42*Math.cos(rad), ny = cy+42*Math.sin(rad);
+  const ticks = [-110,-55,0,55,110].map(a => {
+    const ar = (a-90)*Math.PI/180;
+    return `<line x1="${(cx+28*Math.cos(ar)).toFixed(1)}" y1="${(cy+28*Math.sin(ar)).toFixed(1)}" x2="${(cx+44*Math.cos(ar)).toFixed(1)}" y2="${(cy+44*Math.sin(ar)).toFixed(1)}" stroke="#2a3a55" stroke-width="2"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 120 78" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:180px;display:block;margin:0 auto">
+    <circle cx="${cx}" cy="${cy}" r="52" fill="#0a0f1a" stroke="#1a2540" stroke-width="1.5"/>
+    ${seg(-130, -10, '#ff3355', v === -1)}
+    ${seg(-10,  10,  '#7a8ab0', v === 0)}
+    ${seg(10,  130,  '#00cc55', v === 1)}
+    <circle cx="${cx}" cy="${cy}" r="44" fill="none" stroke="#1a2540" stroke-width="0.5"/>
+    <circle cx="${cx}" cy="${cy}" r="28" fill="#0a0f1a"/>
+    ${ticks}
+    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${activeColor}" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="4.5" fill="#0a0f1a" stroke="${color}" stroke-width="2"/>
+    <text x="${(cx+20*Math.cos((-110-90)*Math.PI/180)).toFixed(1)}" y="${(cy+20*Math.sin((-110-90)*Math.PI/180)+3).toFixed(1)}" fill="#ff3355" font-size="6.5" text-anchor="middle" font-family="monospace">S</text>
+    <text x="${(cx+20*Math.cos((110-90)*Math.PI/180)).toFixed(1)}" y="${(cy+20*Math.sin((110-90)*Math.PI/180)+3).toFixed(1)}" fill="#00cc55" font-size="6.5" text-anchor="middle" font-family="monospace">L</text>
+    <text x="${cx}" y="74" fill="${activeColor}" font-size="7" font-family="monospace" text-anchor="middle" font-weight="bold">${sigLabel}</text>
+  </svg>`;
+}
 
     function makeGaugeSVG(s, sig) {
   const angle = sig * 110;
