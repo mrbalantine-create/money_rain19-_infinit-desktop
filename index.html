@@ -238,6 +238,8 @@
   .sub-signals { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
   .sub-row     { display:flex; align-items:center; gap:4px; font-size:.68rem; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.04); }
   .sub-row:last-child { border-bottom: none; padding-bottom:0; }
+  body.light-mode .sub-row { border-bottom-color: rgba(0,0,0,0.12); }
+  body.light-mode .sub-row:last-child { border-bottom: none; }
   .sub-row .sub-badge { margin-left:auto; }
   .sub-label   { color:var(--silver); font-family:'Share Tech Mono',monospace; font-size:.62rem; white-space:nowrap; }
   .cond-dot    { flex-shrink:0; width:10px; text-align:center; }
@@ -1407,7 +1409,7 @@ function openChartModal(assetId) {
   // TradingView Widget
   const tv = document.getElementById('chartModalTV');
   tv.innerHTML = `<iframe
-    src="https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${sym}&interval=D&theme=dark&style=1&locale=en&toolbar_bg=%230d1220&enable_publishing=false&hide_side_toolbar=0&allow_symbol_change=0&save_image=false&hideideas=1&hide_top_toolbar=0&up_color=%23ffffff&down_color=%23ffffff&border_up_color=%23ffffff&border_down_color=%23ffffff&wick_up_color=%23ffffff&wick_down_color=%23ffffff"
+    src="https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${sym}&interval=D&theme=${document.body.classList.contains('light-mode')?'light':'dark'}&style=1&locale=en&toolbar_bg=${document.body.classList.contains('light-mode')?'%23f0f2f5':'%230d1220'}&enable_publishing=false&hide_side_toolbar=0&allow_symbol_change=0&save_image=false&hideideas=1&hide_top_toolbar=0&scale=log"
     style="width:100%;height:100%;border:none;"></iframe>`;
 
   // Signal timeline from localStorage
@@ -1759,7 +1761,8 @@ function renderEquity() {
   const chartH = H - PAD_T - PAD_B;
 
   // Background
-  ctx.fillStyle = '#0b1118';
+  const isLightEq = document.body.classList.contains('light-mode');
+  ctx.fillStyle = isLightEq ? '#f0f2f5' : '#0b1118';
   ctx.fillRect(0, 0, W, H);
 
   // Find min/max across all series
@@ -1784,14 +1787,14 @@ function renderEquity() {
     const y = toY(v);
     if (y < PAD_T || y > H - PAD_B) return;
     ctx.beginPath();
-    ctx.strokeStyle = v === 0 ? '#2a3f55' : '#1a2d3d';
+    ctx.strokeStyle = isLightEq ? (v === 0 ? '#aab0c0' : '#c8ccd8') : (v === 0 ? '#2a3f55' : '#1a2d3d');
     ctx.lineWidth   = v === 0 ? 1.5 : 0.7;
     ctx.setLineDash(v === 0 ? [] : [3, 4]);
     ctx.moveTo(PAD_L, y);
     ctx.lineTo(W - PAD_R, y);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = v === 0 ? '#6688aa' : '#3d5266';
+    ctx.fillStyle = isLightEq ? '#6a7080' : (v === 0 ? '#6688aa' : '#3d5266');
     ctx.font = '9px Share Tech Mono, monospace';
     ctx.textAlign = 'right';
     ctx.fillText((v >= 0 ? '+' : '') + v + '%', PAD_L - 4, y + 3);
@@ -1804,7 +1807,7 @@ function renderEquity() {
 
   // Draw zero line
   ctx.beginPath();
-  ctx.strokeStyle = '#2a3f55';
+  ctx.strokeStyle = isLightEq ? '#aab0c0' : '#2a3f55';
   ctx.lineWidth = 1;
   ctx.moveTo(PAD_L, zeroY);
   ctx.lineTo(W - PAD_R, zeroY);
@@ -1848,7 +1851,7 @@ function renderEquity() {
   if (allDates.length > 0) {
     const nd = allDates.length;
     const labelStep = Math.max(1, Math.floor(nd / 5));
-    ctx.fillStyle = '#3d5266';
+    ctx.fillStyle = isLightEq ? '#6a7080' : '#3d5266';
     ctx.font = '9px Share Tech Mono, monospace';
     ctx.textAlign = 'center';
     allDates.forEach((d, i) => {
@@ -1899,21 +1902,22 @@ function renderChart() {
   const midY   = PAD_T + chartH / 2;
 
   // Background
-  ctx.fillStyle = '#0b1118';
+  const isLight = document.body.classList.contains('light-mode');
+  ctx.fillStyle = isLight ? '#f0f2f5' : '#0b1118';
   ctx.fillRect(0, 0, W, H);
 
   // Grid lines
   [-1, 0, 1].forEach(v => {
     const y = midY - v * (chartH / 2);
     ctx.beginPath();
-    ctx.strokeStyle = v === 0 ? '#243447' : '#1e2d3d';
+    ctx.strokeStyle = isLight ? (v === 0 ? '#aab0c0' : '#c8ccd8') : (v === 0 ? '#243447' : '#1e2d3d');
     ctx.lineWidth   = v === 0 ? 1.5 : 0.7;
     ctx.setLineDash(v === 0 ? [] : [4, 4]);
     ctx.moveTo(PAD_L, y);
     ctx.lineTo(W - PAD_R, y);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#3d5266';
+    ctx.fillStyle = isLight ? '#6a7080' : '#3d5266';
     ctx.font = '9px Share Tech Mono, monospace';
     ctx.textAlign = 'right';
     ctx.fillText(v === 1 ? 'LONG' : v === -1 ? 'SHORT' : '—', PAD_L - 4, y + 3);
@@ -1921,7 +1925,7 @@ function renderChart() {
 
   // X axis labels
   const n = h.length;
-  ctx.fillStyle = '#3d5266';
+  ctx.fillStyle = isLight ? '#6a7080' : '#3d5266';
   ctx.font = '9px Share Tech Mono, monospace';
   ctx.textAlign = 'center';
   const labelStep = Math.max(1, Math.floor(n / 7));
