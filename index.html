@@ -316,6 +316,26 @@
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" style="position:fixed;inset:0;background:#080c14;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0">
+  <div style="background:#0d1220;border:1px solid #1a2540;border-radius:8px;padding:40px 36px;width:340px;max-width:90vw;text-align:center">
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.3em;color:#3a4a70;text-transform:uppercase;margin-bottom:6px">Mission Control Center</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:1.3rem;font-weight:700;color:#00ccff;letter-spacing:.15em;margin-bottom:28px">ACCESS CONTROL</div>
+    <div style="position:relative;margin-bottom:16px">
+      <input id="loginInput" type="password" placeholder="Enter Access Token" 
+        style="width:100%;background:#080c14;border:1px solid #203060;color:#ccd6f6;padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:.85rem;border-radius:4px;outline:none;letter-spacing:.1em;text-align:center"
+        onkeydown="if(event.key==='Enter')checkLogin()">
+    </div>
+    <button onclick="checkLogin()" 
+      style="width:100%;background:#00ccff;color:#000;border:none;padding:11px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.95rem;letter-spacing:.15em;cursor:pointer;border-radius:4px;text-transform:uppercase">
+      AUTHENTICATE
+    </button>
+    <div id="loginError" style="margin-top:14px;font-family:'Share Tech Mono',monospace;font-size:.7rem;color:#ff3355;min-height:18px"></div>
+  </div>
+  <div style="margin-top:18px;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:#3a4a70;letter-spacing:.15em">SECURE ACCESS · MrBalantine</div>
+</div>
+
+
 <!-- CONFIG BANNER -->
 <div id="configBanner">
   <label>🔗 SERVER URL</label>
@@ -458,6 +478,14 @@
           <span style="color:var(--silver);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-family:'Share Tech Mono',monospace">Total Value</span>
           <span class="total-val" id="portfolioTotal">— USD</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Total Value Banner — full width sticky bottom -->
+    <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:12px 16px;border-left:3px solid var(--cyan);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--silver)">Total Portfolio Value</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--cyan)" id="portfolioTotalDesktop">— USD</span>
       </div>
     </div>
 
@@ -661,6 +689,16 @@ function togglePrivacy() {
       if (bannerEl.dataset.real) bannerEl.textContent = bannerEl.dataset.real;
     }
   }
+  // Desktop total value banner
+  const dtEl = document.getElementById('portfolioTotalDesktop');
+  if (dtEl) {
+    if (privacyMode) {
+      dtEl.dataset.real = dtEl.textContent;
+      dtEl.textContent = '••••••• USD';
+    } else {
+      if (dtEl.dataset.real) dtEl.textContent = dtEl.dataset.real;
+    }
+  }
   // Re-render cards (indicator labels)
   renderCards();
   renderSummary();
@@ -745,8 +783,8 @@ function makeCard(s) {
 
 function renderCards() {
   document.getElementById('cardsTop').innerHTML = makeCard(SCRIPTS.find(s => s.id === 'ltpi'));
-  document.getElementById('cardsMid').innerHTML = ['btc','eth','sol'].map(id => makeCard(SCRIPTS.find(s => s.id === id))).join('');
-  document.getElementById('cardsBot').innerHTML = makeCard(SCRIPTS.find(s => s.id === 'gold'));
+  document.getElementById('cardsMid').innerHTML = ['btc','eth','sol','gold'].map(id => makeCard(SCRIPTS.find(s => s.id === id))).join('');
+  document.getElementById('cardsBot').innerHTML = '';
 }
 
 function renderFlips() {
@@ -1023,6 +1061,8 @@ function calcPortfolio() {
   const total = Object.values(vals).reduce((a,b) => a+b, 0);
   const display = total > 0 ? fmtBig(total) + ' USD' : '— USD';
   document.getElementById('portfolioTotal').textContent = display;
+  const _dt = document.getElementById('portfolioTotalDesktop');
+  if (_dt) _dt.textContent = display;
   const _pb = document.getElementById('portfolioBanner');
   if (_pb) { _pb.dataset.real = display; _pb.textContent = privacyMode ? '••••••• USD' : display; }
 }
@@ -1461,5 +1501,39 @@ function renderMomentum() {
 }
 </script>
 
+<script>
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+const ACCESS_HASH = '3d1bf065f59b54866900a23ccfd372c227985f5921b0e5dec92f725b4a4c332b';
+const LOGIN_KEY   = 'mcc_auth_p2';
+
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkLogin() {
+  const val = document.getElementById('loginInput').value.trim();
+  const hash = await sha256(val);
+  if (hash === ACCESS_HASH) {
+    sessionStorage.setItem(LOGIN_KEY, '1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginInput').value = '';
+  } else {
+    const err = document.getElementById('loginError');
+    err.textContent = '⚠ Invalid token — access denied';
+    document.getElementById('loginInput').value = '';
+    setTimeout(() => err.textContent = '', 2500);
+  }
+}
+
+async function initLogin() {
+  if (sessionStorage.getItem(LOGIN_KEY) === '1') {
+    document.getElementById('loginOverlay').style.display = 'none';
+  }
+  // focus input
+  setTimeout(() => document.getElementById('loginInput')?.focus(), 100);
+}
+initLogin();
+</script>
 </body>
 </html>
