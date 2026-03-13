@@ -398,12 +398,6 @@
   <!-- ═══ LEFT COLUMN ═══ -->
   <div class="col-left">
 
-    <!-- Portfolio Value -->
-    <div class="portfolio-banner">
-      <span class="pb-label">Portfolio Value</span>
-      <span class="pb-val" id="portfolioBanner">— USD</span>
-    </div>
-
     <!-- Overview -->
     <div>
       <div class="section-title">Overview</div>
@@ -452,8 +446,7 @@
       <div class="section-title">Portfolio</div>
       <div class="portfolio-box">
         <div style="margin-bottom:8px">
-          <button onclick="fetchPrices()" id="priceRefreshBtn" style="width:100%;padding:6px;background:var(--border2);color:var(--cyan);border:1px solid var(--border2);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:.1em;cursor:pointer">↻ REFRESH PRICES</button>
-          <span id="priceTime" style="color:var(--dim);font-size:.58rem;display:block;margin-top:3px;text-align:center">—</span>
+          <span id="priceTime" style="color:var(--dim);font-size:.58rem;display:block;text-align:center">—</span>
         </div>
         <!-- Price grid: all 12 in 4 columns x 3 rows -->
         <div class="price-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -521,6 +514,12 @@
     <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:14px 20px;border-left:3px solid var(--cyan);display:flex;align-items:center;justify-content:space-between;box-shadow:0 0 24px rgba(0,204,255,.06)">
       <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver)">Total Portfolio Value</span>
       <span style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--cyan);letter-spacing:.05em" id="portfolioTotalDesktop">— USD</span>
+    </div>
+
+    <!-- GAUGES ROW -->
+    <div>
+      <div class="section-title">Signal Gauges</div>
+      <div id="gaugesRow" style="display:flex;gap:8px;align-items:flex-end;justify-content:space-between"></div>
     </div>
 
     <!-- Signals & Performance — 2x2 grid + LTPI full top, GOLD full bottom -->
@@ -903,7 +902,83 @@ function renderMomentum() {
   }).join('');
 }
 
-function renderAll() { renderMomentum(); renderSummary(); renderEquity(); renderCards(); renderFlips(); renderChart(); renderDomMajor(); }
+
+function renderGauges() {
+  const container = document.getElementById('gaugesRow');
+  if (!container) return;
+  const SCRIPTS = [
+    { id:'ltpi', label:'LTPI', color:'#22c55e' },
+    { id:'btc',  label:'BTC',  color:'#ff9500' },
+    { id:'eth',  label:'ETH',  color:'#0099ff' },
+    { id:'sol',  label:'SOL',  color:'#9945ff' },
+    { id:'gold', label:'GOLD', color:'#ffd60a' },
+  ];
+  container.innerHTML = SCRIPTS.map(s => {
+    const sig = state.signals[s.id] ?? 0;
+    // sig: 1=LONG, -1=SHORT, 0=neutral
+    // Needle angle: -1 → -120deg, 0 → 0deg (top), 1 → +120deg (mapped to arc)
+    // Arc goes from -130deg to +130deg (260deg total)
+    const angle = sig * 110; // degrees from vertical: -110=SHORT, 0=neutral, +110=LONG
+    const rad = (angle - 90) * Math.PI / 180;
+    // Needle tip
+    const cx = 60, cy = 58, r = 38;
+    const nx = cx + r * Math.cos(rad);
+    const ny = cy + r * Math.sin(rad);
+    // Needle base width
+    const baseAngle1 = rad + Math.PI/2;
+    const baseAngle2 = rad - Math.PI/2;
+    const bw = 4;
+    const b1x = cx + bw * Math.cos(baseAngle1);
+    const b1y = cy + bw * Math.sin(baseAngle1);
+    const b2x = cx + bw * Math.cos(baseAngle2);
+    const b2y = cy + bw * Math.sin(baseAngle2);
+    const sigLabel = sig === 1 ? 'LONG' : sig === -1 ? 'SHORT' : 'WAIT';
+    const sigColor = sig === 1 ? '#00ff66' : sig === -1 ? '#ff3355' : '#7a8ab0';
+    return `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+      <svg viewBox="0 0 120 80" width="100%" style="max-width:160px">
+        <defs>
+          <linearGradient id="arcRed_${s.id}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#7f1d1d"/>
+            <stop offset="100%" stop-color="#ff3355"/>
+          </linearGradient>
+          <linearGradient id="arcGreen_${s.id}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00ff66"/>
+            <stop offset="100%" stop-color="#14532d"/>
+          </linearGradient>
+        </defs>
+        <!-- Outer ring -->
+        <circle cx="60" cy="58" r="52" fill="#0d1220" stroke="#1a2540" stroke-width="1.5"/>
+        <!-- Red arc (left, SHORT) -130 to -10 degrees from top = 220deg to 340deg in SVG -->
+        <path d="M ${60 + 46*Math.cos((-130-90)*Math.PI/180)} ${58 + 46*Math.sin((-130-90)*Math.PI/180)} A 46 46 0 0 1 ${60 + 46*Math.cos((-10-90)*Math.PI/180)} ${58 + 46*Math.sin((-10-90)*Math.PI/180)}" fill="none" stroke="#ff3355" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+        <!-- Green arc (right, LONG) +10 to +130 degrees from top -->
+        <path d="M ${60 + 46*Math.cos((10-90)*Math.PI/180)} ${58 + 46*Math.sin((10-90)*Math.PI/180)} A 46 46 0 0 1 ${60 + 46*Math.cos((130-90)*Math.PI/180)} ${58 + 46*Math.sin((130-90)*Math.PI/180)}" fill="none" stroke="#00ff66" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+        <!-- Grey arc (middle gap) -->
+        <path d="M ${60 + 46*Math.cos((-10-90)*Math.PI/180)} ${58 + 46*Math.sin((-10-90)*Math.PI/180)} A 46 46 0 0 1 ${60 + 46*Math.cos((10-90)*Math.PI/180)} ${58 + 46*Math.sin((10-90)*Math.PI/180)}" fill="none" stroke="#1a2540" stroke-width="7" stroke-linecap="round"/>
+        <!-- Tick marks -->
+        ${[-110, -55, 0, 55, 110].map(a => {
+          const r1 = 40, r2 = 46;
+          const ar = (a-90)*Math.PI/180;
+          return `<line x1="${60+r1*Math.cos(ar)}" y1="${58+r1*Math.sin(ar)}" x2="${60+r2*Math.cos(ar)}" y2="${58+r2*Math.sin(ar)}" stroke="#3a4a70" stroke-width="1.5"/>`;
+        }).join('')}
+        <!-- -1 label -->
+        <text x="${60 + 34*Math.cos((-110-90)*Math.PI/180)}" y="${58 + 34*Math.sin((-110-90)*Math.PI/180) + 3}" fill="#ff3355" font-family="Share Tech Mono,monospace" font-size="6" text-anchor="middle">-1</text>
+        <!-- +1 label -->
+        <text x="${60 + 34*Math.cos((110-90)*Math.PI/180)}" y="${58 + 34*Math.sin((110-90)*Math.PI/180) + 3}" fill="#00ff66" font-family="Share Tech Mono,monospace" font-size="6" text-anchor="middle">+1</text>
+        <!-- Needle -->
+        <polygon points="${b1x},${b1y} ${nx},${ny} ${b2x},${b2y}" fill="#ff6600" opacity="0.95"/>
+        <!-- Center cap -->
+        <circle cx="60" cy="58" r="6" fill="#0d3a4a" stroke="#00ccff" stroke-width="1.5"/>
+        <!-- Asset label -->
+        <text x="60" y="30" fill="${s.color}" font-family="Share Tech Mono,monospace" font-size="8" font-weight="bold" text-anchor="middle" letter-spacing="1">${s.label}</text>
+        <!-- Signal label -->
+        <text x="60" y="74" fill="${sigColor}" font-family="Share Tech Mono,monospace" font-size="7" font-weight="bold" text-anchor="middle">${sigLabel}</text>
+      </svg>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() { renderGauges(); renderMomentum(); renderSummary(); renderEquity(); renderCards(); renderFlips(); renderChart(); renderDomMajor(); }
 
 // ── FETCH ────────────────────────────────────────────────────────────────────
 async function fetchData() {
