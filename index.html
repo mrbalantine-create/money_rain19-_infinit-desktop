@@ -1208,8 +1208,13 @@ function makeCard(s) {
     </div>
     <div class="card-body">
       <div style="padding:8px 0 10px;display:flex;justify-content:center;align-items:center">${makeGaugeSVGInline(sig, s.color)}</div>
-      <div class="sub-signals" style="flex:1">${subRows}${conditionHint}</div>
-      <div class="perf-grid" style="margin-top:auto">
+      <div class="sub-signals">${subRows}</div>
+      <div style="margin-top:auto"></div>
+      <div style="padding-top:8px;border-top:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim)">
+        <span style="color:var(--lime)">▲ LONG: </span>${longLogicDisplay}<br>
+        <span style="color:var(--red)">▼ SHORT: </span>${shortLogicDisplay}
+      </div>
+      <div class="perf-grid" style="margin-top:6px">
         <div class="perf-item"><span class="perf-val" style="color:${netColor}">${perf.net}</span><span class="perf-lbl">Net Profit</span></div>
         <div class="perf-item"><span class="perf-val" style="color:var(--txt)">${perf.trades}</span><span class="perf-lbl">Trades</span></div>
         <div class="perf-item"><span class="perf-val" style="color:var(--cyan)">${perf.wr}</span><span class="perf-lbl">Win Rate</span></div>
