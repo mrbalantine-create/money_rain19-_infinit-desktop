@@ -236,7 +236,8 @@
 
   .card-body  { padding:10px 12px; }
   .sub-signals { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
-  .sub-row     { display:flex; align-items:center; gap:4px; font-size:.68rem; }
+  .sub-row     { display:flex; align-items:center; gap:4px; font-size:.68rem; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .sub-row:last-child { border-bottom: none; padding-bottom:0; }
   .sub-row .sub-badge { margin-left:auto; }
   .sub-label   { color:var(--silver); font-family:'Share Tech Mono',monospace; font-size:.62rem; white-space:nowrap; }
   .cond-dot    { flex-shrink:0; width:10px; text-align:center; }
