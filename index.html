@@ -325,6 +325,100 @@
 
   /* privacy */
   .privacy-hidden { filter: blur(5px); user-select:none; pointer-events:none; }
+
+  /* ── CHART MODAL ─────────────────────────────────────────── */
+  .chart-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: var(--bg);
+    flex-direction: column;
+  }
+  .chart-modal.active { display: flex; }
+  .chart-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border2);
+    flex-shrink: 0;
+  }
+  .chart-back-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--txt);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .75rem;
+    padding: 6px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: .08em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chart-back-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .chart-modal-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+  }
+  .chart-modal-sig {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 3px;
+    letter-spacing: .1em;
+  }
+  .chart-modal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .chart-modal-tv {
+    flex: 1;
+    min-height: 0;
+  }
+  .chart-modal-tv iframe { width: 100%; height: 100%; border: none; }
+  .chart-signal-timeline {
+    flex-shrink: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 10px 24px;
+  }
+  .timeline-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .6rem;
+    letter-spacing: .2em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .timeline-entries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .timeline-entry {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .65rem;
+    padding: 3px 8px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .te-long  { background: rgba(0,255,102,.1); color: var(--lime); border: 1px solid rgba(0,255,102,.3); }
+  .te-short { background: rgba(255,51,85,.1);  color: var(--red);  border: 1px solid rgba(255,51,85,.3); }
+
 </style>
 </head>
 <body>
@@ -402,6 +496,26 @@
     <span id="clock">--:--:--</span>
     <span id="lastUpdate" style="color:var(--dim)">—</span>
     <button id="privacyBtn" onclick="togglePrivacy()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--silver);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:.65rem;border-radius:3px;cursor:pointer;letter-spacing:.05em">👁 SHOW</button>
+  </div>
+</div>
+
+
+<!-- CHART MODAL -->
+<div class="chart-modal" id="chartModal">
+  <div class="chart-modal-header">
+    <button class="chart-back-btn" onclick="closeChartModal()">← BACK</button>
+    <div class="chart-modal-title" id="chartModalTitle">—</div>
+    <div class="chart-modal-sig" id="chartModalSig"></div>
+    <div style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim)" id="chartModalSymbol"></div>
+  </div>
+  <div class="chart-modal-body">
+    <div class="chart-modal-tv" id="chartModalTV"></div>
+    <div class="chart-signal-timeline">
+      <div class="timeline-title">📡 Signal History — gespeicherte Flips</div>
+      <div class="timeline-entries" id="chartTimelineEntries">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--dim)">Keine gespeicherten Signale</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1016,7 +1130,7 @@ function makeCard(s) {
       <span style="color:var(--red)">▼ SHORT: </span>${shortLogicDisplay}
     </div>`;
   const netColor = (perf.net||'').startsWith('+') ? 'var(--lime)' : perf.net === '—' ? 'var(--silver)' : 'var(--red)';
-  return `<div class="script-card" id="card-${s.id}" style="border-top:2px solid ${s.color};box-shadow:0 0 20px ${s.color}18,inset 0 1px 0 ${s.color}22">
+  return `<div class="script-card" id="card-${s.id}" style="border-top:2px solid ${s.color};box-shadow:0 0 20px ${s.color}18,inset 0 1px 0 ${s.color}22;cursor:pointer" onclick="openChartModal('${s.id}')">
     <div class="card-header">
       <div class="card-asset" style="flex:1">
         <div class="asset-dot" style="background:${s.color};box-shadow:0 0 8px ${s.color}40"></div>
@@ -1204,6 +1318,69 @@ function makeGaugeSVGInline(sig_val, color) {
 }
 
 function renderGauges() { /* gauges embedded in cards via makeCard */ }
+
+// ── CHART MODAL ───────────────────────────────────────────────────────────────
+const TV_SYMBOLS = {
+  ltpi: 'CRYPTO:BTCUSD',
+  btc:  'CRYPTO:BTCUSD',
+  eth:  'CRYPTO:ETHUSD',
+  sol:  'CRYPTO:SOLUSD',
+  gold: 'CRYPTO:PAXGUSD',
+};
+
+function openChartModal(assetId) {
+  const s = SCRIPTS.find(x => x.id === assetId);
+  if (!s) return;
+  const sig = state.signals[s.signal_key] ?? 0;
+  const sym = TV_SYMBOLS[assetId] || 'CRYPTO:BTCUSD';
+
+  // Header
+  document.getElementById('chartModalTitle').textContent = s.name;
+  document.getElementById('chartModalTitle').style.color = s.color;
+  document.getElementById('chartModalSymbol').textContent = sym;
+  const sigEl = document.getElementById('chartModalSig');
+  sigEl.textContent = sig > 0 ? 'LONG' : sig < 0 ? 'SHORT' : 'WAIT';
+  sigEl.className = 'chart-modal-sig ' + (sig > 0 ? 'sig-long' : sig < 0 ? 'sig-short' : 'sig-neutral');
+
+  // TradingView Widget
+  const tv = document.getElementById('chartModalTV');
+  tv.innerHTML = `<iframe
+    src="https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${sym}&interval=D&theme=dark&style=1&locale=en&toolbar_bg=%230d1220&enable_publishing=false&hide_side_toolbar=0&allow_symbol_change=0&save_image=false&hideideas=1&hide_top_toolbar=0"
+    style="width:100%;height:100%;border:none;"></iframe>`;
+
+  // Signal timeline from localStorage
+  const history = JSON.parse(localStorage.getItem('mcc_signal_history') || '[]');
+  const entries = document.getElementById('chartTimelineEntries');
+  const filtered = history
+    .filter(h => h.signals && h.signals[assetId] !== undefined)
+    .slice(-40)
+    .reverse();
+
+  if (filtered.length === 0) {
+    entries.innerHTML = '<span style="font-family:\'Share Tech Mono\',monospace;font-size:.65rem;color:var(--dim)">Noch keine Signale gespeichert</span>';
+  } else {
+    entries.innerHTML = filtered.map(h => {
+      const v = h.signals[assetId];
+      const cls = v > 0 ? 'te-long' : 'te-short';
+      const arrow = v > 0 ? '▲' : '▼';
+      const label = v > 0 ? 'LONG' : 'SHORT';
+      return `<div class="timeline-entry ${cls}">${arrow} ${label} <span style="opacity:.6">${h.date || ''}</span></div>`;
+    }).join('');
+  }
+
+  document.getElementById('chartModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeChartModal() {
+  document.getElementById('chartModal').classList.remove('active');
+  document.getElementById('chartModalTV').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChartModal(); });
+
 
 function renderAll() { renderGauges(); renderMomentum(); renderSummary(); renderEquity(); renderCards(); renderFlips(); renderChart(); renderDomMajor(); }
 
