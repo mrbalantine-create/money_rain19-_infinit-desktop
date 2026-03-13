@@ -131,10 +131,10 @@
 
   /* RIGHT COLUMN */
   .col-right {
-    padding: 16px;
+    padding: 10px 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
     overflow-y: auto;
   }
 
@@ -145,7 +145,7 @@
     text-transform: uppercase;
     color: var(--silver);
     font-family: 'Share Tech Mono', monospace;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -248,7 +248,7 @@
     font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--silver);
     letter-spacing:.1em; text-transform:uppercase;
   }
-  .flip-entries { max-height:260px; overflow-y:auto; }
+  .flip-entries { max-height:380px; overflow-y:auto; }
   .flip-entry {
     display:grid; grid-template-columns:55px 70px 1fr 110px;
     align-items:center; padding:5px 12px; border-bottom:1px solid var(--border);
@@ -511,7 +511,7 @@
   <div class="col-right">
 
     <!-- Total Portfolio Value — full width banner -->
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:14px 20px;border-left:3px solid var(--cyan);display:flex;align-items:center;justify-content:space-between;box-shadow:0 0 24px rgba(0,204,255,.06)">
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:10px 20px;border-left:3px solid var(--cyan);display:flex;align-items:center;justify-content:space-between;box-shadow:0 0 24px rgba(0,204,255,.06)">
       <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver)">Total Portfolio Value</span>
       <span style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--cyan);letter-spacing:.05em" id="portfolioTotalDesktop">— USD</span>
     </div>
@@ -519,7 +519,7 @@
     <!-- GAUGES ROW -->
     <div>
       <div class="section-title">Signal Gauges</div>
-      <div id="gaugesRow" style="display:flex;gap:8px;align-items:flex-end;justify-content:space-between"></div>
+      <div id="gaugesRow" style="display:flex;gap:4px;align-items:flex-end;justify-content:space-between"></div>
     </div>
 
     <!-- Signals & Performance — 2x2 grid + LTPI full top, GOLD full bottom -->
@@ -726,6 +726,12 @@ function togglePrivacy() {
     } else {
       if (dtEl.dataset.real) dtEl.textContent = dtEl.dataset.real;
     }
+  }
+  // Left col total value
+  const ptEl = document.getElementById('portfolioTotal');
+  if (ptEl) {
+    if (privacyMode) { ptEl.dataset.real = ptEl.textContent; ptEl.textContent = '••••••• USD'; }
+    else { if (ptEl.dataset.real) ptEl.textContent = ptEl.dataset.real; }
   }
   // Re-render cards (indicator labels)
   renderCards();
