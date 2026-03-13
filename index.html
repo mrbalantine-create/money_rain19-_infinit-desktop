@@ -538,18 +538,11 @@
       <div class="section-title">Signals & Performance</div>
       <!-- LTPI + GOLD row -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div>
-          <div id="cardsTop"></div>
-          <div id="gaugeTop" style="display:flex;justify-content:center;margin-top:8px"></div>
-        </div>
-        <div>
-          <div id="cardsBot"></div>
-          <div id="gaugeBot" style="display:flex;justify-content:center;margin-top:8px"></div>
-        </div>
+        <div id="cardsTop"></div>
+        <div id="cardsBot"></div>
       </div>
       <!-- BTC ETH SOL row -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" id="cardsMid"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px" id="gaugeMid"></div>
     </div>
 
     <!-- Charts side by side -->
@@ -1032,7 +1025,7 @@ function makeCard(s) {
       </div>
     </div>
     <div class="card-body">
-      <div style="padding:8px 0 10px;text-align:center">${makeGaugeSVG(sig, s.color)}</div>
+      <div style="padding:8px 0 10px;display:flex;justify-content:center;align-items:center">${makeGaugeSVG(sig, s.color)}</div>
       <div class="sub-signals">${subRows}${conditionHint}</div>
       <div class="perf-grid">
         <div class="perf-item"><span class="perf-val" style="color:${netColor}">${perf.net}</span><span class="perf-lbl">Net Profit</span></div>
@@ -1175,21 +1168,7 @@ function makeGaugeSVG(s, sig) {
     </div>`;
 }
 
-function renderGauges() {
-  const LTPI = { id:'ltpi', label:'LTPI', color:'#22c55e' };
-  const BTC  = { id:'btc',  label:'BTC',  color:'#ff9500' };
-  const ETH  = { id:'eth',  label:'ETH',  color:'#0099ff' };
-  const SOL  = { id:'sol',  label:'SOL',  color:'#9945ff' };
-  const GOLD = { id:'gold', label:'GOLD', color:'#ffd60a' };
-
-  const gTop = document.getElementById('gaugeTop');
-  const gBot = document.getElementById('gaugeBot');
-  const gMid = document.getElementById('gaugeMid');
-
-  if (gTop) gTop.innerHTML = makeGaugeSVG(LTPI, state.signals.ltpi ?? 0);
-  if (gBot) gBot.innerHTML = makeGaugeSVG(GOLD, state.signals.gold ?? 0);
-  if (gMid) gMid.innerHTML = [BTC,ETH,SOL].map(s => `<div style="display:flex;justify-content:center">${makeGaugeSVG(s, state.signals[s.id] ?? 0)}</div>`).join('');
-}
+function renderGauges() { /* gauges embedded in cards via makeCard */ }
 
 function renderAll() { renderGauges(); renderMomentum(); renderSummary(); renderEquity(); renderCards(); renderFlips(); renderChart(); renderDomMajor(); }
 
@@ -1771,10 +1750,11 @@ function renderSummary() {
   five.innerHTML = SCRIPTS.map(s => {
     const sig = state.signals[s.id] ?? 0;
     const cls = sig === 1 ? 'sig-long' : sig === -1 ? 'sig-short' : 'sig-neutral';
-    const lbl = sig === 1 ? '▲ LONG' : sig === -1 ? '▼ SHORT' : '— WAIT';
+    const arrow = sig === 1 ? '▲' : sig === -1 ? '▼' : '—';
+    const word  = sig === 1 ? 'LONG' : sig === -1 ? 'SHORT' : 'WAIT';
     return `<div class="summary-card">
       <span class="sum-asset" style="color:${s.color}">${s.label}</span>
-      <span class="sum-signal ${cls}">${lbl}</span>
+      <span class="sum-signal ${cls}" style="display:flex;flex-direction:column;align-items:center;line-height:1.2">${arrow}<br>${word}</span>
     </div>`;
   }).join('');
 }
