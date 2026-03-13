@@ -317,23 +317,53 @@
 <body>
 
 <!-- LOGIN OVERLAY -->
-<div id="loginOverlay" style="position:fixed;inset:0;background:#080c14;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0">
-  <div style="background:#0d1220;border:1px solid #1a2540;border-radius:8px;padding:40px 36px;width:340px;max-width:90vw;text-align:center">
+<div id="loginOverlay" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+  <canvas id="matrixCanvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.18"></canvas>
+  <div style="position:relative;z-index:2;background:rgba(8,12,20,0.92);border:1px solid #1a2540;border-radius:8px;padding:40px 36px;width:340px;max-width:90vw;text-align:center;backdrop-filter:blur(8px);">
     <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.3em;color:#3a4a70;text-transform:uppercase;margin-bottom:6px">Mission Control Center</div>
     <div style="font-family:'Share Tech Mono',monospace;font-size:1.3rem;font-weight:700;color:#00ccff;letter-spacing:.15em;margin-bottom:28px">ACCESS CONTROL</div>
     <div style="position:relative;margin-bottom:16px">
-      <input id="loginInput" type="password" placeholder="Enter Access Token" 
+      <input id="loginInput" type="password" placeholder="Enter Access Token"
         style="width:100%;background:#080c14;border:1px solid #203060;color:#ccd6f6;padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:.85rem;border-radius:4px;outline:none;letter-spacing:.1em;text-align:center"
         onkeydown="if(event.key==='Enter')checkLogin()">
     </div>
-    <button onclick="checkLogin()" 
+    <button onclick="checkLogin()"
       style="width:100%;background:#00ccff;color:#000;border:none;padding:11px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.95rem;letter-spacing:.15em;cursor:pointer;border-radius:4px;text-transform:uppercase">
       AUTHENTICATE
     </button>
     <div id="loginError" style="margin-top:14px;font-family:'Share Tech Mono',monospace;font-size:.7rem;color:#ff3355;min-height:18px"></div>
   </div>
-  <div style="margin-top:18px;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:#3a4a70;letter-spacing:.15em">SECURE ACCESS · MrBalantine</div>
+  <div style="position:relative;z-index:2;margin-top:18px;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:#3a4a70;letter-spacing:.15em">SECURE ACCESS · MrBalantine</div>
 </div>
+<script>
+(function() {
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF'.split('');
+  let cols, drops;
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols  = Math.floor(canvas.width / 18);
+    drops = Array(cols).fill(1);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(() => {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00ff66';
+    ctx.font = '14px Share Tech Mono, monospace';
+    drops.forEach((y, i) => {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillStyle = y === 1 ? '#aaffcc' : '#00ff66';
+      ctx.fillText(ch, i * 18, y * 18);
+      if (y * 18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }, 45);
+})();
+</script>
 
 
 <!-- CONFIG BANNER -->
@@ -946,7 +976,7 @@ async function fetchData() {
 
 // ── DEMO ─────────────────────────────────────────────────────────────────────
 function loadDemo() {
-  state.signals = { ltpi:1, btc:1, eth:-1, sol:1, gold:0 };
+  state.signals = { ltpi:-1, btc:-1, eth:-1, sol:-1, gold:1 };
   state.subs = {
     ltpi_rmsd:-1, ltpi_bb:-1, ltpi_onchain:-1,
     btc_hlsd:-1, btc_kalman:-1, btc_qfl:-1, btc_ndsod:-1,
