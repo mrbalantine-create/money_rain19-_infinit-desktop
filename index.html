@@ -564,6 +564,7 @@ applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
     <button id="themeBtn" onclick="toggleTheme()" class="theme-btn">☾ DARK</button>
     <button id="notifBtn" onclick="toggleNotifications()" class="notif-btn">🔔 ALERTS</button>
     <button id="privacyBtn" onclick="togglePrivacy()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--silver);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:.65rem;border-radius:3px;cursor:pointer;letter-spacing:.05em">👁 SHOW</button>
+    <button onclick="logout()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--red);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:.65rem;border-radius:3px;cursor:pointer;letter-spacing:.05em">⏏ DISCONNECT</button>
   </div>
 </div>
 
@@ -595,6 +596,8 @@ applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
     <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--silver)">Total Portfolio Value</span>
     <span style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--cyan);letter-spacing:.05em" id="portfolioTotalDesktop">— USD</span>
   </div>
+
+  <button onclick="saveHoldingsManual()" style="display:block;margin:8px 24px;background:rgba(0,204,255,.1);border:1px solid var(--cyan);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:8px 16px;border-radius:3px;cursor:pointer;letter-spacing:.1em;width:calc(100% - 48px)">💾 SAVE HOLDINGS</button>
 
   <!-- TWO COLUMNS -->
   <div class="columns-wrapper">
@@ -684,6 +687,7 @@ applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
           <div class="holding-row"><div class="holding-label" style="color:#6fbcf0">SUI</div><input class="holding-input" id="h-sui" type="number" min="0" step="0.01" placeholder="0" oninput="calcPortfolio()"><div class="holding-val" id="hv-sui">—</div></div>
           <div class="holding-row"><div class="holding-label" style="color:#00aae4">XRP</div><input class="holding-input" id="h-xrp" type="number" min="0" step="1" placeholder="0" oninput="calcPortfolio()"><div class="holding-val" id="hv-xrp">—</div></div>
         </div>
+        <button onclick="saveHoldingsManual()" style="margin-top:8px;width:100%;background:rgba(0,204,255,.1);border:1px solid var(--cyan);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:8px;border-radius:3px;cursor:pointer;letter-spacing:.1em">💾 SAVE HOLDINGS</button>
         <!-- View mode -->
         <div id="holdingsView" style="display:none">
           <div class="holdings-view-grid">
@@ -1573,6 +1577,16 @@ function applyPortfolioMode() {
   document.getElementById('holdingsView').style.display = isOwner ? 'none'  : 'block';
 }
 
+async function saveHoldingsManual() {
+  if (!SERVER_URL || !DASH_TOKEN) { alert('Please connect with URL and Token first'); return; }
+  await saveHoldingsToServer();
+  const ASSETS = ['usdc','btc','eth','sol','gold','bnb','doge','ada','hype','link','sui','xrp'];
+  const cached = {};
+  ASSETS.forEach(k => { cached[k] = parseFloat(document.getElementById('h-'+k)?.value) || 0; });
+  localStorage.setItem('mcc_holdings_p2', JSON.stringify(cached));
+  alert('Holdings saved! ✓');
+}
+
 async function saveHoldingsToServer() {
   if (!SERVER_URL || !DASH_TOKEN) return;
   const h = {};
@@ -1594,14 +1608,29 @@ async function loadHoldingsFromServer() {
     const res = await fetch(PUBLIC_SERVER_URL + '/holdings', { signal: AbortSignal.timeout(4000) });
     if (!res.ok) return;
     const h = await res.json();
-    ['btc','eth','sol','gold','usdc','bnb','doge','ada','hype','link','sui','xrp'].forEach(k => {
-      if (h[k] !== undefined && h[k] > 0) {
-        const el = document.getElementById('h-'+k);
-        if (el) el.value = h[k];
+    const hasData = Object.values(h).some(v => v > 0);
+    if (hasData) {
+      ['btc','eth','sol','gold','usdc','bnb','doge','ada','hype','link','sui','xrp'].forEach(k => {
+        if (h[k] !== undefined && h[k] > 0) { const el = document.getElementById('h-'+k); if (el) el.value = h[k]; }
+      });
+    } else {
+      const cached = JSON.parse(localStorage.getItem('mcc_holdings_p2') || 'null');
+      if (cached) {
+        ['btc','eth','sol','gold','usdc','bnb','doge','ada','hype','link','sui','xrp'].forEach(k => {
+          if (cached[k] > 0) { const el = document.getElementById('h-'+k); if (el) el.value = cached[k]; }
+        });
       }
-    });
+    }
     calcPortfolio();
-  } catch(e) { /* silent */ }
+  } catch(e) {
+    const cached = JSON.parse(localStorage.getItem('mcc_holdings_p2') || 'null');
+    if (cached) {
+      ['btc','eth','sol','gold','usdc','bnb','doge','ada','hype','link','sui','xrp'].forEach(k => {
+        if (cached[k] > 0) { const el = document.getElementById('h-'+k); if (el) el.value = cached[k]; }
+      });
+      calcPortfolio();
+    }
+  }
 }
 
 function calcPortfolio() {
